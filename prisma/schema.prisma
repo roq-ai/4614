@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["clientExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model customer {
+  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  first_name          String    @db.VarChar(255)
+  last_name           String    @db.VarChar(255)
+  email               String    @unique @db.VarChar(255)
+  customer_support_id String    @db.Uuid
+  created_at          DateTime  @default(now()) @db.Timestamp(6)
+  updated_at          DateTime  @default(now()) @db.Timestamp(6)
+  user                user      @relation(fields: [customer_support_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  inquiry             inquiry[]
+}
+
+model inquiry {
+  id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  customer_id         String   @db.Uuid
+  customer_support_id String   @db.Uuid
+  created_at          DateTime @default(now()) @db.Timestamp(6)
+  updated_at          DateTime @default(now()) @db.Timestamp(6)
+  customer            customer @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user                user     @relation(fields: [customer_support_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model knowledge_base_article {
+  id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title               String   @db.VarChar(255)
+  content             String
+  customer_support_id String   @db.Uuid
+  created_at          DateTime @default(now()) @db.Timestamp(6)
+  updated_at          DateTime @default(now()) @db.Timestamp(6)
+  user                user     @relation(fields: [customer_support_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model lead {
+  id                      String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  status                  String   @db.VarChar(50)
+  sales_representative_id String   @db.Uuid
+  created_at              DateTime @default(now()) @db.Timestamp(6)
+  updated_at              DateTime @default(now()) @db.Timestamp(6)
+  user                    user     @relation(fields: [sales_representative_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  quote                   quote[]
+}
+
+model manufacturer {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  description String?   @db.VarChar(255)
+  image       String?   @db.VarChar(255)
+  name        String    @db.VarChar(255)
+  created_at  DateTime  @default(now()) @db.Timestamp(6)
+  updated_at  DateTime  @default(now()) @db.Timestamp(6)
+  user_id     String    @db.Uuid
+  tenant_id   String    @db.VarChar(255)
+  user        user      @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  order       order[]
+  product     product[]
+}
+
+model order {
+  id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  status          String       @db.VarChar(50)
+  manufacturer_id String       @db.Uuid
+  created_at      DateTime     @default(now()) @db.Timestamp(6)
+  updated_at      DateTime     @default(now()) @db.Timestamp(6)
+  manufacturer    manufacturer @relation(fields: [manufacturer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model product {
+  id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name            String       @db.VarChar(255)
+  manufacturer_id String       @db.Uuid
+  created_at      DateTime     @default(now()) @db.Timestamp(6)
+  updated_at      DateTime     @default(now()) @db.Timestamp(6)
+  manufacturer    manufacturer @relation(fields: [manufacturer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model quote {
+  id                      String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  lead_id                 String   @db.Uuid
+  sales_representative_id String   @db.Uuid
+  created_at              DateTime @default(now()) @db.Timestamp(6)
+  updated_at              DateTime @default(now()) @db.Timestamp(6)
+  lead                    lead     @relation(fields: [lead_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user                    user     @relation(fields: [sales_representative_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model user {
+  id                     String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email                  String                   @unique @db.VarChar(255)
+  firstName              String?                  @db.VarChar(255)
+  lastName               String?                  @db.VarChar(255)
+  roq_user_id            String                   @db.VarChar(255)
+  tenant_id              String                   @db.VarChar(255)
+  created_at             DateTime                 @default(now()) @db.Timestamp(6)
+  updated_at             DateTime                 @default(now()) @db.Timestamp(6)
+  customer               customer[]
+  inquiry                inquiry[]
+  knowledge_base_article knowledge_base_article[]
+  lead                   lead[]
+  manufacturer           manufacturer[]
+  quote                  quote[]
+}
